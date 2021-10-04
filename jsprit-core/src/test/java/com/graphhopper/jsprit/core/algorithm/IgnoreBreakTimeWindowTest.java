@@ -18,6 +18,10 @@
 
 package com.graphhopper.jsprit.core.algorithm;
 
+import java.util.Collection;
+
+import org.junit.Test;
+
 import com.graphhopper.jsprit.core.algorithm.box.Jsprit;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
@@ -30,9 +34,8 @@ import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleType;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
+import com.graphhopper.jsprit.core.reporting.SolutionPrinter;
 import com.graphhopper.jsprit.core.util.Solutions;
-import junit.framework.Assert;
-import org.junit.Test;
 
 /**
  * Created by schroeder on 08/01/16.
@@ -55,6 +58,10 @@ public class IgnoreBreakTimeWindowTest {
             vehicleBuilder.setType(vehicleType);
             vehicleBuilder.setEarliestStart(10).setLatestArrival(50);
             vehicleBuilder.setBreak(Break.Builder.newInstance("lunch").setTimeWindow(TimeWindow.newInstance(14, 14)).setServiceTime(1.).build());
+            vehicleBuilder.setBreak(Break.Builder.newInstance("lunch")
+                .setTimeWindow(TimeWindow.newInstance(14, 14))
+                .setServiceTime(4.)
+                .build());
             vehicle2 = vehicleBuilder.build();
         }
 		/*
@@ -89,12 +96,15 @@ public class IgnoreBreakTimeWindowTest {
             .build();
 
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
-        vra.setMaxIterations(50);
+        vra.setMaxIterations(20);
 
+        Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
         VehicleRoutingProblemSolution solution = Solutions.bestOf(vra.searchSolutions());
 
+        SolutionPrinter.print(vrp, solution, SolutionPrinter.Print.VERBOSE_INSTANT);
 
-        Assert.assertTrue(breakShouldBeTime(solution));
+        org.junit.Assert.assertTrue(breakShouldBeTime(solution));
+        // org.junit.Assert.assertTrue(thereShouldBeABreak(solution));
     }
 
     private boolean breakShouldBeTime(VehicleRoutingProblemSolution solution) {
@@ -110,5 +120,18 @@ public class IgnoreBreakTimeWindowTest {
             }
         }
         return inTime;
+    }
+
+    private boolean thereShouldBeABreak(VehicleRoutingProblemSolution solution)
+    {
+        boolean thereShouldBeABreak = false;
+        for (TourActivity act : solution.getRoutes().iterator().next().getActivities())
+        {
+            if (act instanceof BreakActivity)
+            {
+                thereShouldBeABreak = true;
+            }
+        }
+        return thereShouldBeABreak;
     }
 }
