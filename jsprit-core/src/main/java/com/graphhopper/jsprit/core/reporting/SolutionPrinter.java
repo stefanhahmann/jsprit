@@ -17,6 +17,12 @@
  */
 package com.graphhopper.jsprit.core.reporting;
 
+import java.io.PrintWriter;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.job.Break;
 import com.graphhopper.jsprit.core.problem.job.Job;
@@ -25,11 +31,6 @@ import com.graphhopper.jsprit.core.problem.job.Shipment;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
-
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 
 /**
@@ -52,7 +53,9 @@ public class SolutionPrinter {
      */
     public enum Print {
 
-        CONCISE, VERBOSE
+        CONCISE,
+        VERBOSE,
+        VERBOSE_INSTANT
     }
 
     private static class Jobs {
@@ -131,22 +134,29 @@ public class SolutionPrinter {
         out.format("+---------------+------------------------------------------+%n");
         out.printf("| indicator     | value                                    |%n");
         out.format("+---------------+------------------------------------------+%n");
-        out.format(leftAlignSolution, "costs", solution.getCost());
+        out.format(leftAlignSolution, "costs", Math.round(solution.getCost()));
         out.format(leftAlignSolution, "noVehicles", solution.getRoutes().size());
-        out.format(leftAlignSolution, "unassgndJobs", solution.getUnassignedJobs().size());
+        out.format(leftAlignSolution, "unassignedJobs", solution.getUnassignedJobs().size());
+        for (Job unassignedJob : solution.getUnassignedJobs())
+        {
+            out.format(leftAlignSolution, "jobName:", unassignedJob.getName());
+        }
         out.format("+----------------------------------------------------------+%n");
 
-        if (print.equals(Print.VERBOSE)) {
-            printVerbose(out, problem, solution);
+        if (print.equals(Print.VERBOSE) || print.equals(Print.VERBOSE_INSTANT))
+        {
+            printVerbose(out, problem, solution, print.equals(Print.VERBOSE_INSTANT));
         }
     }
 
     private static void printVerbose(VehicleRoutingProblem problem, VehicleRoutingProblemSolution solution) {
-        printVerbose(SYSTEM_OUT_AS_PRINT_WRITER, problem, solution);
+        printVerbose(SYSTEM_OUT_AS_PRINT_WRITER, problem, solution, false);
         SYSTEM_OUT_AS_PRINT_WRITER.flush();
     }
 
-    private static void printVerbose(PrintWriter out, VehicleRoutingProblem problem, VehicleRoutingProblemSolution solution) {
+    private static void printVerbose(PrintWriter out, VehicleRoutingProblem problem,
+        VehicleRoutingProblemSolution solution, boolean instant)
+    {
         String leftAlgin = "| %-7s | %-20s | %-21s | %-15s | %-15s | %-15s | %-15s |%n";
         out.format("+--------------------------------------------------------------------------------------------------------------------------------+%n");
         out.printf("| detailed solution                                                                                                              |%n");
@@ -159,7 +169,10 @@ public class SolutionPrinter {
         for (VehicleRoute route : list) {
             out.format("+---------+----------------------+-----------------------+-----------------+-----------------+-----------------+-----------------+%n");
             double costs = 0;
-            out.format(leftAlgin, routeNu, getVehicleString(route), route.getStart().getName(), "-", "undef", Math.round(route.getStart().getEndTime()),
+            out.format(leftAlgin, routeNu, getVehicleString(route), route.getStart().getName(), "-",
+                "undef",
+                instant ? Instant.ofEpochSecond(Math.round(route.getStart().getEndTime()))
+                    : Math.round(route.getStart().getEndTime()),
                 Math.round(costs));
             TourActivity prevAct = route.getStart();
             for (TourActivity act : route.getActivities()) {
@@ -173,15 +186,22 @@ public class SolutionPrinter {
                     route.getVehicle());
                 c += problem.getActivityCosts().getActivityCost(act, act.getArrTime(), route.getDriver(), route.getVehicle());
                 costs += c;
-                out.format(leftAlgin, routeNu, getVehicleString(route), act.getName(), jobId, Math.round(act.getArrTime()),
-                    Math.round(act.getEndTime()), Math.round(costs));
+                out.format(leftAlgin, routeNu, getVehicleString(route), act.getName(), jobId,
+                    instant ? Instant.ofEpochSecond(Math.round(act.getArrTime()))
+                        : Math.round(act.getArrTime()),
+                    instant ? Instant.ofEpochSecond(Math.round(act.getEndTime()))
+                        : Math.round(act.getEndTime()),
+                    Math.round(costs));
                 prevAct = act;
             }
             double c = problem.getTransportCosts().getTransportCost(prevAct.getLocation(), route.getEnd().getLocation(), prevAct.getEndTime(),
                 route.getDriver(), route.getVehicle());
             c += problem.getActivityCosts().getActivityCost(route.getEnd(), route.getEnd().getArrTime(), route.getDriver(), route.getVehicle());
             costs += c;
-            out.format(leftAlgin, routeNu, getVehicleString(route), route.getEnd().getName(), "-", Math.round(route.getEnd().getArrTime()), "undef",
+            out.format(leftAlgin, routeNu, getVehicleString(route), route.getEnd().getName(), "-",
+                instant ? Instant.ofEpochSecond(Math.round(route.getEnd().getArrTime()))
+                    : Math.round(route.getEnd().getArrTime()),
+                "undef",
                 Math.round(costs));
             routeNu++;
         }
@@ -192,7 +212,7 @@ public class SolutionPrinter {
             out.format("+----------------+%n");
             String unassignedJobAlgin = "| %-14s |%n";
             for (Job j : solution.getUnassignedJobs()) {
-                out.format(unassignedJobAlgin, j.getId());
+                out.format(unassignedJobAlgin, j.getName());
             }
             out.format("+----------------+%n");
         }
