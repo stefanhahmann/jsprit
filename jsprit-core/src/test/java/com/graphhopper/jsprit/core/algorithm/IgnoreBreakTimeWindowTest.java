@@ -18,8 +18,6 @@
 
 package com.graphhopper.jsprit.core.algorithm;
 
-import java.util.Collection;
-
 import org.junit.Test;
 
 import com.graphhopper.jsprit.core.algorithm.box.Jsprit;
@@ -96,15 +94,15 @@ public class IgnoreBreakTimeWindowTest {
             .build();
 
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
-        vra.setMaxIterations(20);
+        vra.setMaxIterations(50);
 
-        Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
         VehicleRoutingProblemSolution solution = Solutions.bestOf(vra.searchSolutions());
 
-        SolutionPrinter.print(vrp, solution, SolutionPrinter.Print.VERBOSE_INSTANT);
+        SolutionPrinter.print(vrp, solution, SolutionPrinter.Print.VERBOSE);
 
         org.junit.Assert.assertTrue(breakShouldBeTime(solution));
-        // org.junit.Assert.assertTrue(thereShouldBeABreak(solution));
+        org.junit.Assert.assertEquals(2, solution.getUnassignedJobs().size());
+        org.junit.Assert.assertTrue(thereShouldBeABreak(solution));
     }
 
     private boolean breakShouldBeTime(VehicleRoutingProblemSolution solution) {
