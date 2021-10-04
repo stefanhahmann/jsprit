@@ -18,17 +18,15 @@
 package com.graphhopper.jsprit.core.util;
 
 
-
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -46,7 +44,7 @@ public class Resource {
         log.debug("resource: " + filename + " is unreachable by the current class loader, try the filesystem");
         File file = new File(filename);
         if (!file.exists()) {
-            log.debug("resource: " + filename + " do not exists on the filesystem");
+            log.debug("resource: " + file.getAbsolutePath() + " does not exists on the filesystem");
             return null;
         }
         try {
