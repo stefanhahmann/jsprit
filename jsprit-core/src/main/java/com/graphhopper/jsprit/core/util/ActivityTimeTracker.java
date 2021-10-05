@@ -84,12 +84,9 @@ public class ActivityTimeTracker implements ActivityVisitor {
         if (!beginFirst) throw new IllegalStateException("never called begin. this however is essential here");
         double transportTime = this.transportTime.getTransportTime(prevAct.getLocation(), activity.getLocation(), startAtPrevAct, route.getDriver(), route.getVehicle());
 
-        // in case the previous activity is a Start, the end time of the previous activity (which is also the time when leaving the start location) is sufficient to be the earliest start time of the current activity minus the transport time needed for the transfer from start to the current activity
-        //if (prevAct instanceof Start)
-        //{
-        //    prevAct.setEndTime(activity.getTheoreticalEarliestOperationStartTime() - transportTime);
-        //    startAtPrevAct = activity.getTheoreticalEarliestOperationStartTime() - transportTime;
-        //}
+        // keep predecessor and transport time from predecessor for tour contraction
+        activity.setPredecessor(prevAct);
+        activity.setTransportTimeFromPredecessor(transportTime);
 
         double arrivalTimeAtCurrAct = startAtPrevAct + transportTime;
 
