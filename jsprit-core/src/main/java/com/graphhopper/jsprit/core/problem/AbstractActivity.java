@@ -27,11 +27,39 @@ public abstract class AbstractActivity implements TourActivity {
 
     private int index;
 
+    private TourActivity predecessor;
+
+    private double transportTimeFromPredecessor;
+
     public int getIndex() {
         return index;
     }
 
     protected void setIndex(int index) {
         this.index = index;
+    }
+
+    @Override
+    public TourActivity getPredecessor()
+    {
+        return predecessor;
+    }
+
+    @Override
+    public void setPredecessor(TourActivity predecessor)
+    {
+        this.predecessor = predecessor;
+    }
+
+    @Override
+    public double getTransportTimeFromPredecessor()
+    {
+        return transportTimeFromPredecessor;
+    }
+
+    @Override
+    public void setTransportTimeFromPredecessor(double transportTimeFromPredecessor)
+    {
+        this.transportTimeFromPredecessor = transportTimeFromPredecessor;
     }
 }

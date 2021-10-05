@@ -136,4 +136,11 @@ public interface TourActivity extends HasIndex {
      */
     TourActivity duplicate();
 
+    TourActivity getPredecessor();
+
+    void setPredecessor(TourActivity predecessor);
+
+    double getTransportTimeFromPredecessor();
+
+    void setTransportTimeFromPredecessor(double transportTimeFromPredecessor);
 }
