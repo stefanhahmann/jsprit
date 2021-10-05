@@ -21,8 +21,11 @@ package com.graphhopper.jsprit.core.algorithm;
 import org.junit.Test;
 
 import com.graphhopper.jsprit.core.algorithm.box.Jsprit;
+import com.graphhopper.jsprit.core.algorithm.state.StateManager;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
+import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
+import com.graphhopper.jsprit.core.problem.constraint.NoShipmentDuringBreakConstraint;
 import com.graphhopper.jsprit.core.problem.job.Break;
 import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
@@ -85,6 +88,7 @@ public class IgnoreBreakTimeWindowTest {
         Service service11 = Service.Builder.newInstance("7").setLocation(Location.newInstance(0, 0))
             .setServiceTime(1.).setTimeWindow(TimeWindow.newInstance(13, 13)).build();
 
+
         VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance()
             .addVehicle(vehicle2)
             .addJob(service4)
@@ -93,7 +97,17 @@ public class IgnoreBreakTimeWindowTest {
             .setFleetSize(VehicleRoutingProblem.FleetSize.FINITE)
             .build();
 
-        VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
+        // create a custom state and constraint manager
+        StateManager stateManager = new StateManager(vrp);
+        ConstraintManager constraintManager = new ConstraintManager(vrp, stateManager);
+        AlgorithmUtil.addCoreConstraints(constraintManager, stateManager, vrp);
+        constraintManager.addConstraint(new NoShipmentDuringBreakConstraint(),
+            ConstraintManager.Priority.CRITICAL);
+
+        // VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
+        VehicleRoutingAlgorithm vra = Jsprit.Builder.newInstance(vrp)
+            .setStateAndConstraintManager(stateManager, constraintManager)
+            .buildAlgorithm();
         vra.setMaxIterations(50);
 
         VehicleRoutingProblemSolution solution = Solutions.bestOf(vra.searchSolutions());
