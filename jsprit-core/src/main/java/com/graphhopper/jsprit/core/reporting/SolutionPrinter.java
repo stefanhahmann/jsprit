@@ -157,19 +157,25 @@ public class SolutionPrinter {
     private static void printVerbose(PrintWriter out, VehicleRoutingProblem problem,
         VehicleRoutingProblemSolution solution, boolean instant)
     {
-        String leftAlgin = "| %-7s | %-20s | %-21s | %-15s | %-15s | %-15s | %-15s |%n";
-        out.format("+--------------------------------------------------------------------------------------------------------------------------------+%n");
-        out.printf("| detailed solution                                                                                                              |%n");
-        out.format("+---------+----------------------+-----------------------+-----------------+-----------------+-----------------+-----------------+%n");
-        out.printf("| route   | vehicle              | activity              | job             | arrTime         | endTime         | costs           |%n");
+        String leftAlgin = "| %-7s | %-20s | %-21s | %-21s | %-21s | %-21s | %-21s | %-15s |%n";
+        out.format(
+            "+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+%n");
+        out.printf(
+            "| detailed solution                                                                                                                                                        |%n");
+        out.format(
+            "+---------+----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------+%n");
+        out.printf(
+            "| route   | vehicle              | activity              | location              | job                   | arrTime               | endTime               | costs           |%n");
         int routeNu = 1;
 
         List<VehicleRoute> list = new ArrayList<VehicleRoute>(solution.getRoutes());
         Collections.sort(list , new com.graphhopper.jsprit.core.util.VehicleIndexComparator());
         for (VehicleRoute route : list) {
-            out.format("+---------+----------------------+-----------------------+-----------------+-----------------+-----------------+-----------------+%n");
+            out.format(
+                "+---------+----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------+%n");
             double costs = 0;
-            out.format(leftAlgin, routeNu, getVehicleString(route), route.getStart().getName(), "-",
+            out.format(leftAlgin, routeNu, getVehicleString(route), route.getStart().getName(),
+                route.getStart().getLocation().getName(), "-",
                 "undef",
                 instant ? Instant.ofEpochSecond(Math.round(route.getStart().getEndTime()))
                     : Math.round(route.getStart().getEndTime()),
@@ -186,7 +192,8 @@ public class SolutionPrinter {
                     route.getVehicle());
                 c += problem.getActivityCosts().getActivityCost(act, act.getArrTime(), route.getDriver(), route.getVehicle());
                 costs += c;
-                out.format(leftAlgin, routeNu, getVehicleString(route), act.getName(), jobId,
+                out.format(leftAlgin, routeNu, getVehicleString(route), act.getName(),
+                    act.getLocation().getName(), jobId,
                     instant ? Instant.ofEpochSecond(Math.round(act.getArrTime()))
                         : Math.round(act.getArrTime()),
                     instant ? Instant.ofEpochSecond(Math.round(act.getEndTime()))
@@ -198,14 +205,16 @@ public class SolutionPrinter {
                 route.getDriver(), route.getVehicle());
             c += problem.getActivityCosts().getActivityCost(route.getEnd(), route.getEnd().getArrTime(), route.getDriver(), route.getVehicle());
             costs += c;
-            out.format(leftAlgin, routeNu, getVehicleString(route), route.getEnd().getName(), "-",
+            out.format(leftAlgin, routeNu, getVehicleString(route), route.getEnd().getName(),
+                route.getEnd().getLocation().getName(), "-",
                 instant ? Instant.ofEpochSecond(Math.round(route.getEnd().getArrTime()))
                     : Math.round(route.getEnd().getArrTime()),
                 "undef",
                 Math.round(costs));
             routeNu++;
         }
-        out.format("+--------------------------------------------------------------------------------------------------------------------------------+%n");
+        out.format(
+            "+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+%n");
         if (!solution.getUnassignedJobs().isEmpty()) {
             out.format("+----------------+%n");
             out.format("| unassignedJobs |%n");
