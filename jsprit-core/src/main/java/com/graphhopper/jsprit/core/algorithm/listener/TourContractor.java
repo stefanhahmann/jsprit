@@ -1,8 +1,7 @@
 package com.graphhopper.jsprit.core.algorithm.listener;
 
 import java.util.Collection;
-
-import org.apache.commons.collections4.iterators.ReverseListIterator;
+import java.util.Iterator;
 
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
@@ -19,8 +18,8 @@ public class TourContractor implements AlgorithmEndsListener
         {
             for (VehicleRoute route : solution.getRoutes())
             {
-                ReverseListIterator<TourActivity> reverseActivityIterator = new ReverseListIterator(
-                    route.getActivities());
+                Iterator<TourActivity> reverseActivityIterator = route.getTourActivities()
+                    .reverseActivityIterator();
 
                 // loop backwards through the list of tour activities
                 while (reverseActivityIterator.hasNext())
